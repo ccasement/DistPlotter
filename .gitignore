@@ -2,5 +2,4 @@
 .Rhistory
 .RData
 .Ruserdata
-^CRAN-SUBMISSION$
 ^cran-comments\.md$

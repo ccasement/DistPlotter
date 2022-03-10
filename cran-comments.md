@@ -16,7 +16,7 @@
     'lastMiKTeXException'
 
   There were 2 NOTES. The first NOTE is due to my needing to fix an important 
-  and time-sensitive issue in my code. Thank you for understanding! The second 
+  and time-sensitive issue in our code. Thank you for understanding! The second 
   NOTE might be due to a bug/crash in MiKTeX, as is noted in R-hub issue #503, 
   which can be found at https://github.com/r-hub/rhub/issues/503.
 
