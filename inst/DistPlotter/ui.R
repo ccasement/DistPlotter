@@ -284,8 +284,8 @@ navbarPage("Dist Plotter",
 
             selectInput("cont_fam", "Family",
               choices = c("Beta", "Cauchy", "Chi-square", "Exponential", "F",
-                "Gamma", "Laplace", "Log-normal", "Normal", "t",
-                "Uniform (continuous)", "Weibull"
+                "Gamma", "Laplace", "Log-normal", "Normal", "Pareto", 
+                "Rayleigh", "t", "Triangular", "Uniform (continuous)", "Weibull"
               ),
               selected = "Normal"
             ),
@@ -377,12 +377,40 @@ navbarPage("Dist Plotter",
                 numericInput("norm_sd", "Std. Dev.", value = 1)
               )
             ),
+            
+            
+            conditionalPanel(
+              condition = "input.cont_fam == 'Pareto'",
+
+              splitLayout(
+                numericInput("par_scale", "Scale", value = 1),
+                numericInput("par_shape", "Alpha (Shape)", value = 1)
+              )
+            ),
+            
+            
+            conditionalPanel(
+              condition = "input.cont_fam == 'Rayleigh'",
+
+              numericInput("ray_scale", "Scale", value = 1, width = "50%")
+            ),
 
 
             conditionalPanel(
               condition = "input.cont_fam == 't'",
 
               numericInput("t_df", "DF", value = 10, width = "50%")
+            ),
+            
+            
+            conditionalPanel(
+              condition = "input.cont_fam == 'Triangular'",
+
+              splitLayout(
+                numericInput("tri_min", "Minimum", value = 0),
+                numericInput("tri_max", "Maximum", value = 1),
+                numericInput("tri_mode", "Mode", value = 0.5)
+              )
             ),
 
 
@@ -412,8 +440,9 @@ navbarPage("Dist Plotter",
 
             selectInput("disc_fam", "Family",
               choices = c(
-                "Bernoulli", "Binomial", "Geometric", "Hypergeometric",
-                "Negative Binomial", "Poisson", "Uniform (discrete)"
+                "Bernoulli", "Beta-Binomial", "Binomial", "Geometric", 
+                "Hypergeometric", "Negative Binomial", "Poisson", 
+                "Uniform (discrete)"
               ),
               selected = "Bernoulli"
             ),
@@ -423,6 +452,15 @@ navbarPage("Dist Plotter",
               condition = "input.disc_fam == 'Bernoulli'",
 
               numericInput("bern_p", "Probability of success (p)", value = 0.5)
+            ),
+            
+            
+            conditionalPanel(
+              condition = "input.disc_fam == 'Beta-Binomial'",
+              
+              numericInput("betabin_n", "Number of trials (n)", value = 10),
+              numericInput("betabin_alpha", "Alpha", value = 1),
+              numericInput("betabin_beta", "Beta", value = 1)
             ),
 
 
@@ -1094,56 +1132,37 @@ navbarPage("Dist Plotter",
                     conditionalPanel(
                       condition = "input.area_common_cont == 'Left'",
 
-                      div(style = "display: inline-block;",
-                        strong(paste0("Shade to the left of:",
-                          stri_dup(intToUtf8(160), 3)
-                        ))
-                      ),
-
-                      div(style = "display: inline-block;",
-                        numericInput("cutoff_left_common_cont", NULL,
-                          value = NA, width = "100px"
-                        )
-                      )
-                    ),
-
-                    conditionalPanel(
-                      condition = "input.area_common_cont == 'Right'",
-
-                      div(style = "display: inline-block;",
-                        strong(paste0("Shade to the right of:",
-                          stri_dup(intToUtf8(160), 3)
-                        ))
-                      ),
-
-                      div(style = "display: inline-block;",
-                        numericInput("cutoff_right_common_cont", NULL,
-                          value = NULL, width = "100px"
-                        )
-                      )
-                    ),
-
-                    conditionalPanel(
-                      condition = "input.area_common_cont == 'Between'",
-
                       fluidRow(
-                        column(12,
-                          # input names flipped since right first then left
-                          div(style = "display: inline-block;",
-                            strong(paste0("Shade to the right of:",
-                              stri_dup(intToUtf8(160), 3)
-                            ))
-                          ),
-
-                          div(style = "display: inline-block;",
-                            numericInput("cutoff_between_left_common_cont",
-                              NULL, value = NULL, width = "100px"
+                        radioButtons("area_common_cont_type_left", 
+                          "Special vs. Manual",
+                          choices = c("Special/Common", "Manual")
+                        ),
+                        
+                        
+                        conditionalPanel(
+                          condition = "input.area_common_cont_type_left == 'Special/Common'",
+                          
+                          column(12,
+                            div(style = "display: inline-block;",
+                              strong(paste0("Area (as a proportion):",
+                                stri_dup(intToUtf8(160), 3)
+                              ))
+                            ),
+  
+                            div(style = "display: inline-block;",
+                              numericInput("common_cont_special_left",
+                                NULL, value = NULL, width = "100px"
+                              )
                             )
                           )
-                        ),
-
+                        )
+                      ),
+                      
+                      
+                      conditionalPanel(
+                        condition = "input.area_common_cont_type_left == 'Manual'",
+                      
                         column(12,
-                          # input names flipped since right first then left
                           div(style = "display: inline-block;",
                             strong(paste0("Shade to the left of:",
                               stri_dup(intToUtf8(160), 3)
@@ -1151,8 +1170,122 @@ navbarPage("Dist Plotter",
                           ),
 
                           div(style = "display: inline-block;",
-                            numericInput("cutoff_between_right_common_cont",
+                            numericInput("cutoff_left_common_cont",
                               NULL, value = NULL, width = "100px"
+                            )
+                          )
+                        )
+                      )
+                    ),
+
+                    conditionalPanel(
+                      condition = "input.area_common_cont == 'Right'",
+                      
+                      fluidRow(
+                        radioButtons("area_common_cont_type_right", 
+                          "Special vs. Manual",
+                          choices = c("Special/Common", "Manual")
+                        ),
+                        
+                        
+                        conditionalPanel(
+                          condition = "input.area_common_cont_type_right == 'Special/Common'",
+                        
+                          column(12,
+                            div(style = "display: inline-block;",
+                              strong(paste0("Area (as a proportion):",
+                                stri_dup(intToUtf8(160), 3)
+                              ))
+                            ),
+  
+                            div(style = "display: inline-block;",
+                              numericInput("common_cont_special_right",
+                                NULL, value = NULL, width = "100px"
+                              )
+                            )
+                          )
+                        )
+                      ),
+                      
+                      
+                      conditionalPanel(
+                        condition = "input.area_common_cont_type_right == 'Manual'",
+
+                        div(style = "display: inline-block;",
+                          strong(paste0("Shade to the right of:",
+                            stri_dup(intToUtf8(160), 3)
+                          ))
+                        ),
+  
+                        div(style = "display: inline-block;",
+                          numericInput("cutoff_right_common_cont", NULL,
+                            value = NULL, width = "100px"
+                          )
+                        )
+                      )
+                    ),
+
+                    conditionalPanel(
+                      condition = "input.area_common_cont == 'Between'",
+                      
+                      fluidRow(
+                        radioButtons("area_common_cont_type_between", 
+                          "Special vs. Manual",
+                          choices = c("Special/Common", "Manual")
+                        ),
+                        
+                        
+                        conditionalPanel(
+                          condition = "input.area_common_cont_type_between == 'Special/Common'",
+                          
+                          column(12,
+                            div(style = "display: inline-block;",
+                              strong(paste0("Area (as a proportion):",
+                                stri_dup(intToUtf8(160), 3)
+                              ))
+                            ),
+  
+                            div(style = "display: inline-block;",
+                              numericInput("common_cont_special_between",
+                                NULL, value = NULL, width = "100px"
+                              )
+                            )
+                          )
+                        )
+                      ),
+                      
+                      
+                      conditionalPanel(
+                        condition = "input.area_common_cont_type_between == 'Manual'",
+
+                        fluidRow(
+                          column(12,
+                            # input names flipped since right first then left
+                            div(style = "display: inline-block;",
+                              strong(paste0("Shade to the right of:",
+                                stri_dup(intToUtf8(160), 3)
+                              ))
+                            ),
+  
+                            div(style = "display: inline-block;",
+                              numericInput("cutoff_between_left_common_cont",
+                                NULL, value = NULL, width = "100px"
+                              )
+                            )
+                          ),
+  
+                          column(12,
+                            # input names flipped since right first then left
+                            div(style = "display: inline-block;",
+                              strong(paste0("Shade to the left of:",
+                                stri_dup(intToUtf8(160), 3)
+                              ))
+                            ),
+  
+                            div(style = "display: inline-block;",
+                              numericInput("cutoff_between_right_common_cont",
+                                NULL, value = NULL, width = "100px"
+                              )
                             )
                           )
                         )
@@ -1163,30 +1296,60 @@ navbarPage("Dist Plotter",
                       condition = "input.area_common_cont == 'Outside/Tails'",
 
                       fluidRow(
-                        column(12,
-                          div(style = "display: inline-block;",
-                            strong(paste0("Shade to the left of:",
-                              stri_dup(intToUtf8(160), 3)
-                            ))
-                          ),
-
-                          div(style = "display: inline-block;",
-                            numericInput("cutoff_outside_left_common_cont",
-                              NULL, value = NULL, width = "100px"
+                        radioButtons("area_common_cont_type_outer", 
+                          "Special vs. Manual",
+                          choices = c("Special/Common", "Manual")
+                        ),
+                        
+                        
+                        conditionalPanel(
+                          condition = "input.area_common_cont_type_outer == 'Special/Common'",
+                          
+                          column(12,
+                            div(style = "display: inline-block;",
+                              strong(paste0("Area (as a proportion):",
+                                stri_dup(intToUtf8(160), 3)
+                              ))
+                            ),
+  
+                            div(style = "display: inline-block;",
+                              numericInput("common_cont_special_outside",
+                                NULL, value = NULL, width = "100px"
+                              )
                             )
                           )
+                          
                         ),
-
-                        column(12,
-                          div(style = "display: inline-block;",
-                            strong(paste0("Shade to the right of:",
-                              stri_dup(intToUtf8(160), 3)
-                            ))
+                        
+                        
+                        conditionalPanel(
+                          condition = "input.area_common_cont_type_outer == 'Manual'",
+                        
+                          column(12,
+                            div(style = "display: inline-block;",
+                              strong(paste0("Shade to the left of:",
+                                stri_dup(intToUtf8(160), 3)
+                              ))
+                            ),
+  
+                            div(style = "display: inline-block;",
+                              numericInput("cutoff_outside_left_common_cont",
+                                NULL, value = NULL, width = "100px"
+                              )
+                            )
                           ),
-
-                          div(style = "display: inline-block;",
-                            numericInput("cutoff_outside_right_common_cont",
-                              NULL, value = NULL, width = "100px"
+  
+                          column(12,
+                            div(style = "display: inline-block;",
+                              strong(paste0("Shade to the right of:",
+                                stri_dup(intToUtf8(160), 3)
+                              ))
+                            ),
+  
+                            div(style = "display: inline-block;",
+                              numericInput("cutoff_outside_right_common_cont",
+                                NULL, value = NULL, width = "100px"
+                              )
                             )
                           )
                         )
@@ -2398,43 +2561,110 @@ navbarPage("Dist Plotter",
 
                 column(2,
                   checkboxInput("add_density_user",
-                    strong("Add normal density curve")
+                    strong("Add density curve")
                   ),
-
-                  conditionalPanel(
-                    condition = "input.add_density_user",
-
-                    column(12,
-                      div(style = "display: inline-block;",
-                        strong(paste0(
-                          "Curve color:",
-                          stri_dup(intToUtf8(160), 3)
-                        ))
-                      ),
-
-                      div(style = "display: inline-block;",
-                        colourInput("curve_color_user", NULL, value = "black",
-                          showColour = "background"
+                  
+                  column(12,
+                    conditionalPanel(
+                      condition = "input.add_density_user",
+                    
+                      selectInput("cont_fam_user", "Family",
+                        choices = c("Exponential", "Gamma", "Log-normal", 
+                          "Normal", "Weibull"
                         ),
+                        selected = "Normal"
+                      ),
+                      
+                      p("Note: Maximum likelihood estimation is used when 
+                        determining the fitted curve."
+                      ),
+                      
 
-                        tags$head(tags$style(
-                          type = "text/css", "#curve_color_user{width: 100px;}"
-                        ))
-                      )
-                    ),
+                      conditionalPanel(
+                        condition = "input.cont_fam_user == 'Exponential'",
 
-
-                    column(12,
-                      div(style = "display: inline-block; vertical-align: -1.75em;",
-                        strong(paste0(
-                          "Curve thickness:",
-                          stri_dup(intToUtf8(160), 3)
-                        ))
+                        textOutput("exp_rate_user")
                       ),
 
-                      div(style = "display: inline-block;",
-                        sliderInput("curve_lwd_user", NULL, min = 0,
-                          max = 4, step = 0.1, value = 1.5, width = "200px"
+
+                      conditionalPanel(
+                        condition = "input.cont_fam_user == 'Gamma'",
+
+                        p("Note: rate = 1/scale."),
+
+                        splitLayout(
+                          textOutput("gamma_shape_user"),
+                          textOutput("gamma_rate_user")
+                        )
+                      ),
+
+
+                      conditionalPanel(
+                        condition = "input.cont_fam_user == 'Log-normal'",
+
+                        splitLayout(
+                          textOutput("lognorm_mean_user"),
+                          textOutput("lognorm_sd_user")
+                        )
+                      ),
+
+                      
+                      conditionalPanel(
+                        condition = "input.cont_fam_user == 'Normal'",
+
+                        splitLayout(
+                          textOutput("norm_mean_user"),
+                          textOutput("norm_sd_user")
+                        )
+                      ),
+                      
+                      
+                      conditionalPanel(
+                        condition = "input.cont_fam_user == 'Weibull'",
+
+                        splitLayout(
+                          textOutput("weib_shape_user"),
+                          textOutput("weib_scale_user")
+                        )
+                      ),
+                      
+                      
+                      column(12,
+                      p("")),
+                      
+                      
+                      column(12,
+                        div(style = "display: inline-block;",
+                          strong(paste0(
+                            "Curve color:",
+                            stri_dup(intToUtf8(160), 3)
+                          ))
+                        ),
+      
+                        div(style = "display: inline-block;",
+                          colourInput("curve_color_user", NULL, value = "black",
+                            showColour = "background"
+                          ),
+      
+                          tags$head(tags$style(
+                            type = "text/css", "#curve_color_user{width: 100px;}"
+                          ))
+                        )
+                      ),
+      
+      
+                      column(12,
+                        div(style = "display: inline-block; vertical-align: -1.75em;",
+                          strong(paste0(
+                            "Curve thickness:",
+                            stri_dup(intToUtf8(160), 3)
+                          ))
+                        ),
+      
+                        div(style = "display: inline-block;",
+                          sliderInput("curve_lwd_user", NULL, min = 0,
+                            max = 4, step = 0.1, value = 1.5, width = "200px"
+                          )
                         )
                       )
                     )
@@ -3031,8 +3261,15 @@ navbarPage("Dist Plotter",
         and distributions from common discrete and continuous families. They can
         also shade areas underneath the curve (e.g., areas corresponding to
         general probabilities, p-values, or confidence levels). Users can
-        additionally plot their own quantitative data, as well as overlay a
-        normal density curve and shade area(s) underneath."
+        additionally plot their own quantitative data, as well as overlay 
+        density curves and shade area(s) underneath."
+      ),
+      br(),
+      
+      # statement regarding adding more distributions
+      h4("Additional Distributions"),
+      p("Interested in our adding any additional univariate distributions to the 
+        current options? Let us know!"
       ),
       br(),
 
@@ -3043,7 +3280,7 @@ navbarPage("Dist Plotter",
       br(),
 
       # copyright statement
-      p("Copyright \uA9 2021-2022 by Anonymous."),
+      p("Copyright \uA9 2021-2023 by Anonymous."),
 
       p("The license statement can be found",
         a("here.", href = "https://choosealicense.com/licenses/mit/",

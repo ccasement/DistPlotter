@@ -538,6 +538,40 @@ shinyServer(function(session, input, output){
 
           validate(need(all(c(issue_norm1, issue_norm2) == FALSE), ""))
 
+        } else if (input$cont_fam == "Pareto") {
+
+          issue_par1 <- input$par_scale <= 0
+          
+          issue_par2 <- input$par_shape <= 0
+
+          issue_par3 <- anyNA(c(input$par_scale, input$par_shape))
+
+          if (issue_par1 | issue_par2 | issue_par3) {
+            shinyalert("Warning!", "At least one parameter value provided is
+              not valid.",
+              type = "error"
+            )
+          }
+
+          validate(need(
+            all(c(issue_par1, issue_par2, issue_par3) == FALSE), 
+            ""
+          ))
+
+        } else if (input$cont_fam == "Rayleigh") {
+
+          issue_ray1 <- input$ray_scale <= 0
+
+          issue_ray2 <- is.na(input$ray_scale)
+
+          if (issue_ray1 | issue_ray2) {
+            shinyalert("Warning!", "The scale value provided is not valid.",
+              type = "error"
+            )
+          }
+
+          validate(need(all(c(issue_ray1, issue_ray2) == FALSE), ""))
+
         } else if (input$cont_fam == "t") {
 
           issue_t1 <- input$t_df <= 0
@@ -552,6 +586,28 @@ shinyServer(function(session, input, output){
           }
 
           validate(need(all(c(issue_t1, issue_t2) == FALSE), ""))
+
+        } else if (input$cont_fam == "Triangular") {
+
+          issue_tri1 <- input$tri_min >= input$tri_max
+          
+          issue_tri2 <- input$tri_min > input$tri_mode
+          
+          issue_tri3 <- input$tri_max < input$tri_mode
+
+          issue_tri4 <- anyNA(c(input$tri_min, input$tri_max, input$tri_mode))
+
+          if (issue_tri1 | issue_tri2 | issue_tri3 | issue_tri4) {
+            shinyalert("Warning!", "At least one parameter value provided is
+              not valid.",
+              type = "error"
+            )
+          }
+
+          validate(need(
+            all(c(issue_tri1, issue_tri2, issue_tri3, issue_tri4) == FALSE), 
+            ""
+          ))
 
         } else if (input$cont_fam == "Uniform (continuous)") {
 
@@ -599,6 +655,31 @@ shinyServer(function(session, input, output){
           }
 
           validate(need(all(c(issue_bern1, issue_bern2) == FALSE), ""))
+
+        } else if (input$disc_fam == "Beta-Binomial") {
+
+          # decimal value for n
+          issue_betabin1 <- mean(c(
+            as.numeric(input$betabin_n), as.integer(input$betabin_n)
+          )) != as.numeric(input$betabin_n)
+          
+          issue_betabin2 <- input$betabin_alpha < 0 | input$betabin_beta < 0
+
+          issue_betabin3 <- anyNA(c(input$betabin_n, input$betabin_alpha, 
+            input$betabin_beta
+          ))
+
+          if (issue_betabin1 | issue_betabin2 | issue_betabin3) {
+            shinyalert("Warning!", "At least one parameter value provided is
+              not valid.",
+              type = "error"
+            )
+          }
+
+          validate(need(
+            all(c(issue_betabin1, issue_betabin2, issue_betabin3) == FALSE), 
+            ""
+          ))
 
         } else if (input$disc_fam == "Binomial") {
 
@@ -811,7 +892,7 @@ shinyServer(function(session, input, output){
             n = n,
             args = list(mean = params[1], sd = params[2]),
             color = input$curve_color_common,
-            lwd = input$curve_lwd_common
+            linewidth = input$curve_lwd_common
           )
 
         } else if (input$pop_shape == "Skewed") {
@@ -834,7 +915,7 @@ shinyServer(function(session, input, output){
               shape2 = params[2]
             ),
             color = input$curve_color_common,
-            lwd = input$curve_lwd_common
+            linewidth = input$curve_lwd_common
           )
 
         } else if (input$pop_shape == "Bimodal") {
@@ -869,7 +950,7 @@ shinyServer(function(session, input, output){
               alpha = c(params[5], params[6])
             ),
             color = input$curve_color_common,
-            lwd = input$curve_lwd_common
+            linewidth = input$curve_lwd_common
           )
 
         } else if (input$pop_shape == "Uniform") {
@@ -887,7 +968,7 @@ shinyServer(function(session, input, output){
             n = n,
             args = list(min = params[1], max = params[2]),
             color = input$curve_color_common,
-            lwd = input$curve_lwd_common
+            linewidth = input$curve_lwd_common
           )
         }
 
@@ -939,7 +1020,7 @@ shinyServer(function(session, input, output){
                        },
               ),
               color = input$line_color_mean,
-              lwd = input$line_lwd_mean
+              linewidth = input$line_lwd_mean
             )
         }
 
@@ -989,7 +1070,7 @@ shinyServer(function(session, input, output){
                        },
               ),
               color = input$line_color_median,
-              lwd = input$line_lwd_median
+              linewidth = input$line_lwd_median
             )
         }
 
@@ -1351,7 +1432,7 @@ shinyServer(function(session, input, output){
                 yend = 1/(input$x_max_basic - input$x_min_basic)
               ),
               color = input$curve_color_common,
-              lwd = input$curve_lwd_common,
+              linewidth = input$curve_lwd_common,
               linetype = "dotted"
             ) +
             geom_segment(
@@ -1362,7 +1443,7 @@ shinyServer(function(session, input, output){
                 yend = 1/(input$x_max_basic - input$x_min_basic)
               ),
               color = input$curve_color_common,
-              lwd = input$curve_lwd_common,
+              linewidth = input$curve_lwd_common,
               linetype = "dotted"
             )
         }
@@ -1382,12 +1463,34 @@ shinyServer(function(session, input, output){
             "Laplace" = dlaplace,
             "Log-normal" = dlnorm,
             "Normal" = dnorm,
+            "Pareto" = dpareto,
+            "Rayleigh" = drayleigh,
             "t" = dt,
+            "Triangular" = dtriang,
             "Uniform (continuous)" = dunif,
             "Weibull" = dweibull
           )
+          
+          # quantile function
+          quant_fxn <- switch(input$cont_fam,
+            "Beta" = qbeta,
+            "Cauchy" = qcauchy,
+            "Chi-square" = qchisq,
+            "Exponential" = qexp,
+            "F" = qf,
+            "Gamma" = qgamma,
+            "Laplace" = qlaplace,
+            "Log-normal" = qlnorm,
+            "Normal" = qnorm,
+            "Pareto" = qpareto,
+            "Rayleigh" = qrayleigh,
+            "t" = qt,
+            "Triangular" = qtriang,
+            "Uniform (continuous)" = qunif,
+            "Weibull" = qweibull
+          )
 
-          # parameters of pop. distribution for density curve
+          # parameters of pop. distribution
           params <- switch(input$cont_fam,
             "Beta" = c(input$beta_shape1, input$beta_shape2),
             "Cauchy" = c(input$cauchy_loc, input$cauchy_scale),
@@ -1398,7 +1501,10 @@ shinyServer(function(session, input, output){
             "Laplace" = c(input$laplace_loc, input$laplace_scale),
             "Log-normal" = c(input$lognorm_mean, input$lognorm_sd),
             "Normal" = c(input$norm_mean, input$norm_sd),
+            "Pareto" = c(input$par_shape, input$par_scale),
+            "Rayleigh" = input$ray_scale,
             "t" = input$t_df,
+            "Triangular" = c(input$tri_min, input$tri_max, input$tri_mode),
             "Uniform (continuous)" = c(input$uni_min, input$uni_max),
             "Weibull" = c(input$weib_shape, input$weib_scale)
           )
@@ -1415,7 +1521,10 @@ shinyServer(function(session, input, output){
             "Laplace" = qlaplace(0.001, input$laplace_loc, input$laplace_scale),
             "Log-normal" = qlnorm(0.001, input$lognorm_mean, input$lognorm_sd),
             "Normal" = qnorm(0.0001, input$norm_mean, input$norm_sd),
+            "Pareto" = input$par_scale,
+            "Rayleigh" = 0,
             "t" = qt(0.0001, input$t_df),
+            "Triangular" = input$tri_min,
             "Uniform (continuous)" = input$uni_min,
             "Weibull" = 0
           )
@@ -1432,7 +1541,10 @@ shinyServer(function(session, input, output){
             "Laplace" = qlaplace(0.999, input$laplace_loc, input$laplace_scale),
             "Log-normal" = qlnorm(0.999, input$lognorm_mean, input$lognorm_sd),
             "Normal" = qnorm(0.9999, input$norm_mean, input$norm_sd),
+            "Pareto" = qpareto(0.95, input$par_shape, input$par_scale),
+            "Rayleigh" = qrayleigh(0.999, input$ray_scale),
             "t" = qt(0.9999, input$t_df),
+            "Triangular" = input$tri_max,
             "Uniform (continuous)" = input$uni_max,
             "Weibull" = qweibull(0.999, input$weib_shape, input$weib_scale)
           )
@@ -1450,9 +1562,11 @@ shinyServer(function(session, input, output){
               list(params)
             } else if (length(params) == 2) {
               list(params[1], params[2])
+            } else if (length(params) == 3) {
+              list(params[1], params[2], params[3])
             },
             color = input$curve_color_common,
-            lwd = input$curve_lwd_common
+            linewidth = input$curve_lwd_common
           )
 
 
@@ -1465,153 +1579,407 @@ shinyServer(function(session, input, output){
           } else if (input$color_area_common) {
 
             if (input$area_common_cont == "Left") {
+              
+              if (input$area_common_cont_type_left == "Special/Common") {
+                
+                if (!is.na(input$common_cont_special_left)) {
+  
+                  plot_area <- stat_function(
+                    fun = dist_fxn,
+                    n = n,
+                    args =
+                      if (length(params) == 1) {
+                        list(params)
+                      } else if (length(params) == 2) {
+                        list(params[1], params[2])
+                      } else if (length(params) == 3) {
+                        list(params[1], params[2], params[3])
+                      },
+                    xlim = c(
+                      x_min, 
+                      if (length(params) == 1) {
+                        quant_fxn(input$common_cont_special_left, params)
+                      } else if (length(params) == 2) {
+                        quant_fxn(input$common_cont_special_left, params[1], 
+                          params[2]
+                        )
+                      } else if (length(params) == 3) {
+                        quant_fxn(input$common_cont_special_left, params[1], 
+                          params[2], params[3]
+                        )
+                      }
+                    ),
+                    geom = "area",
+                    fill = input$area_color_common,
+                    alpha = input$area_opac_common
+                  )
+  
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_area +
+                    plot_density +
+                    ylab("Density")
+  
+                } else {
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_density +
+                    ylab("Density")
+                }
+                
+              } else if (input$area_common_cont_type_left == "Manual") {
 
-              if (!is.na(input$cutoff_left_common_cont)) {
-
-                plot_area <- stat_function(
-                  fun = dist_fxn,
-                  n = n,
-                  args =
-                    if (length(params) == 1) {
-                      list(params)
-                    } else if (length(params) == 2) {
-                      list(params[1], params[2])
-                    },
-                  xlim = c(x_min, input$cutoff_left_common_cont),
-                  geom = "area",
-                  fill = input$area_color_common,
-                  alpha = input$area_opac_common
-                )
-
-
-                plot_common <- ggplot(df_x, aes(x = x)) +
-                  plot_area +
-                  plot_density +
-                  ylab("Density")
-
-              } else {
-
-                plot_common <- ggplot(df_x, aes(x = x)) +
-                  plot_density +
-                  ylab("Density")
+                if (!is.na(input$cutoff_left_common_cont)) {
+  
+                  plot_area <- stat_function(
+                    fun = dist_fxn,
+                    n = n,
+                    args =
+                      if (length(params) == 1) {
+                        list(params)
+                      } else if (length(params) == 2) {
+                        list(params[1], params[2])
+                      } else if (length(params) == 3) {
+                        list(params[1], params[2], params[3])
+                      },
+                    xlim = c(x_min, input$cutoff_left_common_cont),
+                    geom = "area",
+                    fill = input$area_color_common,
+                    alpha = input$area_opac_common
+                  )
+  
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_area +
+                    plot_density +
+                    ylab("Density")
+  
+                } else {
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_density +
+                    ylab("Density")
+                }
               }
 
             } else if (input$area_common_cont == "Right") {
+              
+              if (input$area_common_cont_type_right == "Special/Common") {
+                
+                if (!is.na(input$common_cont_special_right)) {
+  
+                  plot_area <- stat_function(
+                    fun = dist_fxn,
+                    n = n,
+                    args =
+                      if (length(params) == 1) {
+                        list(params)
+                      } else if (length(params) == 2) {
+                        list(params[1], params[2])
+                      } else if (length(params) == 3) {
+                        list(params[1], params[2], params[3])
+                      },
+                    xlim = c(
+                      if (length(params) == 1) {
+                        quant_fxn(1-input$common_cont_special_right, params)
+                      } else if (length(params) == 2) {
+                        quant_fxn(1-input$common_cont_special_right, params[1], 
+                          params[2]
+                        )
+                      } else if (length(params) == 3) {
+                        quant_fxn(1-input$common_cont_special_right, params[1], 
+                          params[2], params[3]
+                        )
+                      },
+                      x_max
+                    ),
+                    geom = "area",
+                    fill = input$area_color_common,
+                    alpha = input$area_opac_common
+                  )
+  
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_area +
+                    plot_density +
+                    ylab("Density")
+  
+                } else {
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_density +
+                    ylab("Density")
+                }
+                
+              } else if (input$area_common_cont_type_right == "Manual") {
 
-              if (!is.na(input$cutoff_right_common_cont)) {
-
-                plot_area <- stat_function(
-                  fun = dist_fxn,
-                  n = n,
-                  args =
-                    if (length(params) == 1) {
-                      list(params)
-                    } else if (length(params) == 2) {
-                      list(params[1], params[2])
-                    },
-                  xlim = c(input$cutoff_right_common_cont, x_max),
-                  geom = "area",
-                  fill = input$area_color_common,
-                  alpha = input$area_opac_common
-                )
-
-
-                plot_common <- ggplot(df_x, aes(x = x)) +
-                  plot_area +
-                  plot_density +
-                  ylab("Density")
-
-              } else {
-
-                plot_common <- ggplot(df_x, aes(x = x)) +
-                  plot_density +
-                  ylab("Density")
+                if (!is.na(input$cutoff_right_common_cont)) {
+  
+                  plot_area <- stat_function(
+                    fun = dist_fxn,
+                    n = n,
+                    args =
+                      if (length(params) == 1) {
+                        list(params)
+                      } else if (length(params) == 2) {
+                        list(params[1], params[2])
+                      } else if (length(params) == 3) {
+                        list(params[1], params[2], params[3])
+                      },
+                    xlim = c(input$cutoff_right_common_cont, x_max),
+                    geom = "area",
+                    fill = input$area_color_common,
+                    alpha = input$area_opac_common
+                  )
+  
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_area +
+                    plot_density +
+                    ylab("Density")
+  
+                } else {
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_density +
+                    ylab("Density")
+                }
               }
 
             } else if (input$area_common_cont == "Between") {
+              
+              if (input$area_common_cont_type_between == "Special/Common") {
+                
+                if (!is.na(input$common_cont_special_between)) {
+  
+                  plot_area <- stat_function(
+                    fun = dist_fxn,
+                    n = n,
+                    args =
+                      if (length(params) == 1) {
+                        list(params)
+                      } else if (length(params) == 2) {
+                        list(params[1], params[2])
+                      } else if (length(params) == 3) {
+                        list(params[1], params[2], params[3])
+                      },
+                    xlim = c(
+                      if (length(params) == 1) {
+                        quant_fxn((1-input$common_cont_special_between)/2, 
+                          params
+                        )
+                      } else if (length(params) == 2) {
+                        quant_fxn((1-input$common_cont_special_between)/2, 
+                          params[1], params[2]
+                        )
+                      } else if (length(params) == 3) {
+                        quant_fxn((1-input$common_cont_special_between)/2, 
+                          params[1], params[2], params[3]
+                        )
+                      },
+                      if (length(params) == 1) {
+                        quant_fxn(1-(1-input$common_cont_special_between)/2, 
+                          params
+                        )
+                      } else if (length(params) == 2) {
+                        quant_fxn(1-(1-input$common_cont_special_between)/2, 
+                          params[1], params[2]
+                        )
+                      } else if (length(params) == 3) {
+                        quant_fxn(1-(1-input$common_cont_special_between)/2, 
+                          params[1], params[2], params[3]
+                        )
+                      }
+                    ),
+                    geom = "area",
+                    fill = input$area_color_common,
+                    alpha = input$area_opac_common
+                  )
+  
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_area +
+                    plot_density +
+                    ylab("Density")
+  
+                } else {
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_density +
+                    ylab("Density")
+                }
+                
+              } else if (input$area_common_cont_type_between == "Manual") {
 
-              if (!is.na(input$cutoff_between_left_common_cont) &
-                  !is.na(input$cutoff_between_right_common_cont)
-              ) {
-
-                plot_area <- stat_function(
-                  fun = dist_fxn,
-                  n = n,
-                  args =
-                    if (length(params) == 1) {
-                      list(params)
-                    } else if (length(params) == 2) {
-                      list(params[1], params[2])
-                    },
-                  xlim = c(
-                    input$cutoff_between_left_common_cont,
-                    input$cutoff_between_right_common_cont
-                  ),
-                  geom = "area",
-                  fill = input$area_color_common,
-                  alpha = input$area_opac_common
-                )
-
-
-                plot_common <- ggplot(df_x, aes(x = x)) +
-                  plot_area +
-                  plot_density +
-                  ylab("Density")
-
-              } else {
-
-                plot_common <- ggplot(df_x, aes(x = x)) +
-                  plot_density +
-                  ylab("Density")
+                if (!is.na(input$cutoff_between_left_common_cont) &
+                    !is.na(input$cutoff_between_right_common_cont)
+                ) {
+  
+                  plot_area <- stat_function(
+                    fun = dist_fxn,
+                    n = n,
+                    args =
+                      if (length(params) == 1) {
+                        list(params)
+                      } else if (length(params) == 2) {
+                        list(params[1], params[2])
+                      } else if (length(params) == 3) {
+                        list(params[1], params[2], params[3])
+                      },
+                    xlim = c(
+                      input$cutoff_between_left_common_cont,
+                      input$cutoff_between_right_common_cont
+                    ),
+                    geom = "area",
+                    fill = input$area_color_common,
+                    alpha = input$area_opac_common
+                  )
+  
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_area +
+                    plot_density +
+                    ylab("Density")
+  
+                } else {
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_density +
+                    ylab("Density")
+                }
               }
 
             } else if (input$area_common_cont == "Outside/Tails") {
-
-              if (!is.na(input$cutoff_outside_left_common_cont) &
-                  !is.na(input$cutoff_outside_right_common_cont)
-              ) {
-
-                plot_area_left <- stat_function(
-                  fun = dist_fxn,
-                  n = n,
-                  args =
-                    if (length(params) == 1) {
-                      list(params)
-                    } else if (length(params) == 2) {
-                      list(params[1], params[2])
-                    },
-                  xlim = c(x_min, input$cutoff_outside_left_common_cont),
-                  geom = "area",
-                  fill = input$area_color_common,
-                  alpha = input$area_opac_common
-                )
-
-                plot_area_right <- stat_function(
-                  fun = dist_fxn,
-                  n = n,
-                  args =
-                    if (length(params) == 1) {
-                      list(params)
-                    } else if (length(params) == 2) {
-                      list(params[1], params[2])
-                    },
-                  xlim = c(input$cutoff_outside_right_common_cont, x_max),
-                  geom = "area",
-                  fill = input$area_color_common,
-                  alpha = input$area_opac_common
-                )
-
-                plot_common <- ggplot(df_x, aes(x = x)) +
-                  plot_area_left +
-                  plot_area_right +
-                  plot_density +
-                  ylab("Density")
-
-              } else {
-
-                plot_common <- ggplot(df_x, aes(x = x)) +
-                  plot_density +
-                  ylab("Density")
+              
+              if (input$area_common_cont_type_outer == "Special/Common") {
+                
+                if (!is.na(input$common_cont_special_outside)) {
+                  
+                  plot_area_left <- stat_function(
+                    fun = dist_fxn,
+                    n = n,
+                    args =
+                      if (length(params) == 1) {
+                        list(params)
+                      } else if (length(params) == 2) {
+                        list(params[1], params[2])
+                      },
+                    xlim = c(
+                      x_min, 
+                      if (length(params) == 1) {
+                        quant_fxn(input$common_cont_special_outside/2, 
+                          params
+                        )
+                      } else if (length(params) == 2) {
+                        quant_fxn(input$common_cont_special_outside/2, 
+                          params[1], params[2]
+                        )
+                      } else if (length(params) == 3) {
+                        quant_fxn(input$common_cont_special_outside/2, 
+                          params[1], params[2], params[3]
+                        )
+                      }
+                    ),
+                    geom = "area",
+                    fill = input$area_color_common,
+                    alpha = input$area_opac_common
+                  )
+  
+                  plot_area_right <- stat_function(
+                    fun = dist_fxn,
+                    n = n,
+                    args =
+                      if (length(params) == 1) {
+                        list(params)
+                      } else if (length(params) == 2) {
+                        list(params[1], params[2])
+                      } else if (length(params) == 3) {
+                        list(params[1], params[2], params[3])
+                      },
+                    xlim = c(
+                      if (length(params) == 1) {
+                        quant_fxn(1-input$common_cont_special_outside/2, 
+                          params
+                        )
+                      } else if (length(params) == 2) {
+                        quant_fxn(1-input$common_cont_special_outside/2, 
+                          params[1], params[2]
+                        )
+                      } else if (length(params) == 3) {
+                        quant_fxn(1-input$common_cont_special_outside/2, 
+                          params[1], params[2], params[3]
+                        )
+                      },
+                      x_max
+                    ),
+                    geom = "area",
+                    fill = input$area_color_common,
+                    alpha = input$area_opac_common
+                  )
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_area_left +
+                    plot_area_right +
+                    plot_density +
+                    ylab("Density")
+  
+                } else {
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_density +
+                    ylab("Density")
+                }
+                  
+              } else if (input$area_common_cont_type_outer == "Manual") {
+                
+                if (!is.na(input$cutoff_outside_left_common_cont) &
+                    !is.na(input$cutoff_outside_right_common_cont)
+                ) {
+  
+                  plot_area_left <- stat_function(
+                    fun = dist_fxn,
+                    n = n,
+                    args =
+                      if (length(params) == 1) {
+                        list(params)
+                      } else if (length(params) == 2) {
+                        list(params[1], params[2])
+                      },
+                    xlim = c(x_min, input$cutoff_outside_left_common_cont),
+                    geom = "area",
+                    fill = input$area_color_common,
+                    alpha = input$area_opac_common
+                  )
+  
+                  plot_area_right <- stat_function(
+                    fun = dist_fxn,
+                    n = n,
+                    args =
+                      if (length(params) == 1) {
+                        list(params)
+                      } else if (length(params) == 2) {
+                        list(params[1], params[2])
+                      } else if (length(params) == 3) {
+                        list(params[1], params[2], params[3])
+                      },
+                    xlim = c(input$cutoff_outside_right_common_cont, x_max),
+                    geom = "area",
+                    fill = input$area_color_common,
+                    alpha = input$area_opac_common
+                  )
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_area_left +
+                    plot_area_right +
+                    plot_density +
+                    ylab("Density")
+  
+                } else {
+  
+                  plot_common <- ggplot(df_x, aes(x = x)) +
+                    plot_density +
+                    ylab("Density")
+                }
               }
             }
           }
@@ -1628,7 +1996,7 @@ shinyServer(function(session, input, output){
                   yend = 1/(input$uni_max - input$uni_min)
                 ),
                 color = input$curve_color_common,
-                lwd = input$curve_lwd_common,
+                linewidth = input$curve_lwd_common,
                 linetype = "dotted"
               ) +
               geom_segment(
@@ -1639,7 +2007,7 @@ shinyServer(function(session, input, output){
                   yend = 1/(input$uni_max - input$uni_min)
                 ),
                 color = input$curve_color_common,
-                lwd = input$curve_lwd_common,
+                linewidth = input$curve_lwd_common,
                 linetype = "dotted"
               )
           }
@@ -1858,6 +2226,7 @@ shinyServer(function(session, input, output){
             # pop. distribution to randomly sample from
             dist_fxn <- switch(input$disc_fam,
               "Bernoulli" = dbinom,
+              "Beta-Binomial" = dbbinom,
               "Binomial" = dbinom,
               "Geometric" = dgeom,
               "Hypergeometric" = dhyper,
@@ -1868,6 +2237,9 @@ shinyServer(function(session, input, output){
             # parameters of pop. distribution
             params <- switch(input$disc_fam,
               "Bernoulli" = c(1, input$bern_p),
+              "Beta-Binomial" = c(input$betabin_n, input$betabin_alpha, 
+                input$betabin_beta
+              ),
               "Binomial" = c(input$bin_n, input$bin_p),
               "Geometric" = input$geom_p,
               "Hypergeometric" = c(input$hyper_K, input$hyper_N - input$hyper_K,
@@ -1884,6 +2256,7 @@ shinyServer(function(session, input, output){
             # max x
             x_max <- switch(input$disc_fam,
               "Bernoulli" = 1,
+              "Beta-Binomial" = input$betabin_n,
               "Binomial" = input$bin_n,
               "Geometric" = qgeom(0.999, input$geom_p),
               "Hypergeometric" = qhyper(0.999, input$hyper_K,
@@ -2582,7 +2955,7 @@ shinyServer(function(session, input, output){
           xend = input[[paste0("add_arrow_end_loc_x_", i)]],
           yend = input[[paste0("add_arrow_end_loc_y_", i)]],
           arrow = arrow(length = unit(0.1, "inches"), type = "closed"),
-          lwd = input[[paste0("add_arrow_lwd_", i)]],
+          linewidth = input[[paste0("add_arrow_lwd_", i)]],
           col = input[[paste0("add_arrow_color_", i)]]
         )
 
@@ -2599,7 +2972,7 @@ shinyServer(function(session, input, output){
           y = input[[paste0("add_segment_start_loc_y_", i)]],
           xend = input[[paste0("add_segment_end_loc_x_", i)]],
           yend = input[[paste0("add_segment_end_loc_y_", i)]],
-          lwd = input[[paste0("add_segment_lwd_", i)]],
+          linewidth = input[[paste0("add_segment_lwd_", i)]],
           col = input[[paste0("add_segment_color_", i)]]
         )
 
@@ -2944,8 +3317,8 @@ shinyServer(function(session, input, output){
                           selectInput(paste0("multiple_fam_", i), "Family",
                             choices = c("Beta", "Cauchy", "Chi-square",
                               "Exponential", "F", "Gamma", "Laplace",
-                              "Log-normal", "Normal", "t",
-                              "Uniform (continuous)", "Weibull"
+                              "Log-normal", "Normal", "Pareto", "Rayleigh", "t", 
+                              "Triangular", "Uniform (continuous)", "Weibull"
                             ),
                             selected = "Normal"
                           )
@@ -2953,8 +3326,8 @@ shinyServer(function(session, input, output){
                           selectInput(paste0("multiple_fam_", i), "Family",
                             choices = c("Beta", "Cauchy", "Chi-square",
                               "Exponential", "F", "Gamma", "Laplace",
-                              "Log-normal", "Normal", "t",
-                              "Uniform (continuous)", "Weibull"
+                              "Log-normal", "Normal", "Pareto", "Rayleigh", "t", 
+                              "Triangular", "Uniform (continuous)", "Weibull"
                             ),
                             selected = input[[paste0("multiple_fam_", i)]]
                           )
@@ -3297,8 +3670,74 @@ shinyServer(function(session, input, output){
                             )
                           }
                         ),
+                        
+                        
+                        conditionalPanel(
+                          paste0(
+                            "condition =",
+                            paste0("input.multiple_fam_", i),
+                            "== 'Pareto'"
+                          ),
 
+                          if (!is.numeric(
+                            input[[paste0("par_scale_mult_", i)]]
+                          )) {
+                            numericInput(
+                              paste0("par_scale_mult_", i),
+                              "Scale",
+                              value = 1
+                            )
+                          } else {
+                            numericInput(
+                              paste0("par_scale_mult_", i),
+                              "Scale",
+                              value = input[[paste0("par_scale_mult_", i)]]
+                            )
+                          },
 
+                          if (!is.numeric(
+                            input[[paste0("par_shape_mult_", i)]]
+                          )) {
+                            numericInput(
+                              paste0("par_shape_mult_", i),
+                              "Alpha (Shape)",
+                              value = 1
+                            )
+                          } else {
+                            numericInput(
+                              paste0("par_shape_mult_", i),
+                              "Alpha (Shape)",
+                              value = input[[paste0("par_shape_mult_", i)]]
+                            )
+                          }
+                        ),
+                        
+                        
+                        conditionalPanel(
+                          paste0(
+                            "condition =",
+                            paste0("input.multiple_fam_", i),
+                            "== 'Rayleigh'"
+                          ),
+
+                          if (!is.numeric(
+                            input[[paste0("ray_scale_mult_", i)]]
+                          )) {
+                            numericInput(
+                              paste0("ray_scale_mult_", i),
+                              "Scale",
+                              value = 1
+                            )
+                          } else {
+                            numericInput(
+                              paste0("ray_scale_mult_", i),
+                              "Scale",
+                              value = input[[paste0("ray_scale_mult_", i)]]
+                            )
+                          }
+                        ),
+                        
+                        
                         conditionalPanel(
                           paste0(
                             "condition =",
@@ -3319,6 +3758,63 @@ shinyServer(function(session, input, output){
                               paste0("t_df_mult_", i),
                               "DF",
                               value = input[[paste0("t_df_mult_", i)]]
+                            )
+                          }
+                        ),
+                        
+                        
+                        conditionalPanel(
+                          paste0(
+                            "condition =",
+                            paste0("input.multiple_fam_", i),
+                            "== 'Triangular'"
+                          ),
+
+                          if (!is.numeric(
+                            input[[paste0("tri_min_mult_", i)]]
+                          )) {
+                            numericInput(
+                              paste0("tri_min_mult_", i),
+                              "Minimum",
+                              value = 0
+                            )
+                          } else {
+                            numericInput(
+                              paste0("tri_min_mult_", i),
+                              "Minimum",
+                              value = input[[paste0("tri_min_mult_", i)]]
+                            )
+                          },
+
+                          if (!is.numeric(
+                            input[[paste0("tri_max_mult_", i)]]
+                          )) {
+                            numericInput(
+                              paste0("tri_max_mult_", i),
+                              "Maximum",
+                              value = 1
+                            )
+                          } else {
+                            numericInput(
+                              paste0("tri_max_mult_", i),
+                              "Maximum",
+                              value = input[[paste0("tri_max_mult_", i)]]
+                            )
+                          },
+                          
+                          if (!is.numeric(
+                            input[[paste0("tri_mode_mult_", i)]]
+                          )) {
+                            numericInput(
+                              paste0("tri_mode_mult_", i),
+                              "Mode",
+                              value = 0.5
+                            )
+                          } else {
+                            numericInput(
+                              paste0("tri_mode_mult_", i),
+                              "Mode",
+                              value = input[[paste0("tri_mode_mult_", i)]]
                             )
                           }
                         ),
@@ -3516,7 +4012,10 @@ shinyServer(function(session, input, output){
         "Laplace" = dlaplace,
         "Log-normal" = dlnorm,
         "Normal" = dnorm,
+        "Pareto" = dpareto,
+        "Rayleigh" = drayleigh,
         "t" = dt,
+        "Triangular" = dtriang,
         "Uniform (continuous)" = dunif,
         "Weibull" = dweibull
       )
@@ -3563,8 +4062,21 @@ shinyServer(function(session, input, output){
           input[[paste0("norm_mean_mult_", i)]],
           input[[paste0("norm_sd_mult_", i)]]
         ),
+        
+        "Pareto" = c(
+          input[[paste0("par_scale_mult_", i)]],
+          input[[paste0("par_shape_mult_", i)]]
+        ),
+        
+        "Rayleigh" = input[[paste0("ray_scale_mult_", i)]],
 
         "t" = input[[paste0("t_df_mult_", i)]],
+        
+        "Triangular" = c(
+          input[[paste0("tri_min_mult_", i)]],
+          input[[paste0("tri_max_mult_", i)]],
+          input[[paste0("tri_mode_mult_", i)]]
+        ),
 
         "Uniform (continuous)" = c(
           input[[paste0("uni_min_mult_", i)]],
@@ -3749,6 +4261,40 @@ shinyServer(function(session, input, output){
 
         validate(need(all(c(issue_norm1, issue_norm2) == FALSE), ""))
 
+      } else if (input[[paste0("multiple_fam_", i)]] == "Pareto") {
+
+        issue_par1 <- input[[paste0("par_scale_mult_", i)]] <= 0
+        
+        issue_par2 <- input[[paste0("par_shape_mult_", i)]] <= 0
+
+        issue_par3 <- anyNA(c(
+          input[[paste0("par_scale_mult_", i)]],
+          input[[paste0("par_shape_mult_", i)]]
+        ))
+
+        if (issue_par1 | issue_par2 | issue_par3) {
+          shinyalert("Warning!", "At least one parameter value provided is
+            not valid.",
+            type = "error"
+          )
+        }
+
+        validate(need(all(c(issue_par1, issue_par2, issue_par3) == FALSE), ""))
+
+      } else if (input[[paste0("multiple_fam_", i)]] == "Rayleigh") {
+
+        issue_ray1 <- input[[paste0("ray_scale_mult_", i)]] <= 0
+
+        issue_ray2 <- is.na(input[[paste0("ray_scale_mult_", i)]])
+
+        if (issue_ray1 | issue_ray2) {
+          shinyalert("Warning!", "The scale value provided is not valid.",
+            type = "error"
+          )
+        }
+
+        validate(need(all(c(issue_ray1, issue_ray2) == FALSE), ""))
+
       } else if (input[[paste0("multiple_fam_", i)]] == "t") {
 
         issue_t1 <- input[[paste0("t_df_mult_", i)]] <= 0
@@ -3763,6 +4309,35 @@ shinyServer(function(session, input, output){
         }
 
         validate(need(all(c(issue_t1, issue_t2) == FALSE), ""))
+
+      } else if (input[[paste0("multiple_fam_", i)]] == "Triangular") {
+
+        issue_tri1 <- input[[paste0("tri_min_mult_", i)]] >=
+          input[[paste0("tri_max_mult_", i)]]
+        
+        issue_tri2 <- input[[paste0("tri_min_mult_", i)]] >
+          input[[paste0("tri_mode_mult_", i)]]
+        
+        issue_tri3 <- input[[paste0("tri_max_mult_", i)]] <
+          input[[paste0("tri_mode_mult_", i)]]
+
+        issue_tri4 <- anyNA(c(
+          input[[paste0("tri_min_mult_", i)]],
+          input[[paste0("tri_max_mult_", i)]],
+          input[[paste0("tri_mode_mult_", i)]]
+        ))
+
+        if (issue_tri1 | issue_tri2 | issue_tri3 | issue_tri4) {
+          shinyalert("Warning!", "At least one parameter value provided is
+            not valid.",
+            type = "error"
+          )
+        }
+
+        validate(need(
+          all(c(issue_tri1, issue_tri2, issue_tri3, issue_tri4) == FALSE), 
+          ""
+        ))
 
       } else if (input[[paste0("multiple_fam_", i)]] == "Uniform (continuous)") {
 
@@ -3828,7 +4403,10 @@ shinyServer(function(session, input, output){
         "Normal" = qnorm(0.0001, input[[paste0("norm_mean_mult_", i)]],
           input[[paste0("norm_sd_mult_", i)]]
         ),
+        "Pareto" = input[[paste0("par_scale_mult_", i)]],
+        "Rayleigh" = 0,
         "t" = qt(0.0001, input[[paste0("t_df_mult_", i)]]),
+        "Triangular" = input[[paste0("tri_min_mult_", i)]],
         "Uniform (continuous)" = input[[paste0("uni_min_mult_", i)]],
         "Weibull" = 0
       )
@@ -3858,7 +4436,12 @@ shinyServer(function(session, input, output){
         "Normal" = qnorm(0.9999, input[[paste0("norm_mean_mult_", i)]],
           input[[paste0("norm_sd_mult_", i)]]
         ),
+        "Pareto" = qpareto(0.95, input[[paste0("par_shape_mult_", i)]], 
+          input[[paste0("par_scale_mult_", i)]]
+        ),
+        "Rayleigh" = qrayleigh(0.999, input[[paste0("ray_scale_mult_", i)]]),
         "t" = qt(0.9999, input[[paste0("t_df_mult_", i)]]),
+        "Triangular" = input[[paste0("tri_max_mult_", i)]],
         "Uniform (continuous)" = input[[paste0("uni_max_mult_", i)]],
         "Weibull" = qweibull(0.999, input[[paste0("weib_shape_mult_", i)]],
           input[[paste0("weib_scale_mult_", i)]]
@@ -3939,12 +4522,37 @@ shinyServer(function(session, input, output){
           input[[paste0("norm_sd_mult_", i)]],
           ")"
         ),
+        
+        "Pareto" = paste0(
+          "Pareto(scale=",
+          input[[paste0("par_scale_mult_", i)]],
+          ",",
+          "alpha=",
+          input[[paste0("par_shape_mult_", i)]],
+          ")"
+        ),
+        
+        "Rayleigh" = paste0(
+          "Rayleigh(",
+          input[[paste0("ray_scale_mult_", i)]],
+          ")"
+        ),
 
         "t" = parse(text = paste0(
           expression("italic(t)["),
           input[[paste0("t_df_mult_", i)]],
           expression("]")
         )),
+        
+        "Triangular" = paste0(
+          "Tri(",
+          input[[paste0("tri_min_mult_", i)]],
+          ",",
+          input[[paste0("tri_max_mult_", i)]],
+          ",",
+          input[[paste0("tri_mode_mult_", i)]],
+          ")"
+        ),
 
         "Uniform (continuous)" = paste0(
           "U(",
@@ -3972,8 +4580,10 @@ shinyServer(function(session, input, output){
             list(params)
           } else if (length(params) == 2) {
             list(params[1], params[2])
+          } else if (length(params) == 3) {
+            list(params[1], params[2], params[3])
           },
-          lwd = input$curve_lwd_mult,
+          linewidth = input$curve_lwd_mult,
           aes(colour = !!paste0("dist_", i))    # need !! here
         )
     }
@@ -4240,9 +4850,24 @@ shinyServer(function(session, input, output){
         updateNumericInput(session, paste0("norm_mean_mult_", i), value = 0)
         updateNumericInput(session, paste0("norm_sd_mult_", i), value = 1)
 
+      } else if (input[[paste0("multiple_fam_", i)]] == "Pareto") {
+
+        updateNumericInput(session, paste0("par_scale_mult_", i), value = 1)
+        updateNumericInput(session, paste0("par_shape_mult_", i), value = 1)
+
+      } else if (input[[paste0("multiple_fam_", i)]] == "Rayleigh") {
+
+        updateNumericInput(session, paste0("ray_scale_mult_", i), value = 1)
+
       } else if (input[[paste0("multiple_fam_", i)]] == "t") {
 
         updateNumericInput(session, paste0("t_df_mult_", i), value = 10)
+
+      } else if (input[[paste0("multiple_fam_", i)]] == "Triangular") {
+
+        updateNumericInput(session, paste0("tri_min_mult_", i), value = 0)
+        updateNumericInput(session, paste0("tri_max_mult_", i), value = 1)
+        updateNumericInput(session, paste0("tri_mode_mult_", i), value = 0.5)
 
       } else if (input[[paste0("multiple_fam_", i)]] == "Uniform (continuous)") {
 
@@ -4333,6 +4958,18 @@ shinyServer(function(session, input, output){
 
       session$sendCustomMessage(type = "reset_input",
         message = paste0("t_df_mult_", i)
+      )
+      
+      session$sendCustomMessage(type = "reset_input",
+        message = paste0("tri_min_mult_", i)
+      )
+
+      session$sendCustomMessage(type = "reset_input",
+        message = paste0("tri_max_mult_", i)
+      )
+      
+      session$sendCustomMessage(type = "reset_input",
+        message = paste0("tri_mode_mult_", i)
       )
 
       session$sendCustomMessage(type = "reset_input",
@@ -4639,11 +5276,11 @@ shinyServer(function(session, input, output){
     (bag$user_data_df <- data.frame(Data = user_data))
   })
 
+  
 
-
+      
   ##### user plot
   #######################################################
-
   observeEvent(input$make_plot_user, {
 
     ### warning popup if no data set input
@@ -4655,8 +5292,8 @@ shinyServer(function(session, input, output){
     }
 
     validate(need(!is.null(bag$user_data_df), ""))
-
-
+    
+    
     # need this to reset plot output if any input changed
     bag$do_plot_user <- input$make_plot_user
   })
@@ -4705,24 +5342,131 @@ shinyServer(function(session, input, output){
           }
 
         } else {
+          
+          # density function
+        #   dist_fxn <- switch(input$cont_fam_user,
+        #     "Beta" = dbeta,
+        #     "Cauchy" = dcauchy,
+        #     "Chi-square" = dchisq,
+        #     "Exponential" = dexp,
+        #     "F" = df,
+        #     "Gamma" = dgamma,
+        #     "Laplace" = dlaplace,
+        #     "Log-normal" = dlnorm,
+        #     "Normal" = dnorm,
+        #     "Pareto" = dpareto,
+        #     "Rayleigh" = drayleigh,
+        #     "t" = dt,
+        #     "Triangular" = dtriang,
+        #     "Uniform (continuous)" = dunif,
+        #     "Weibull" = dweibull
+        #   )
+        # 
+        #   # parameters of pop. distribution for density curve
+        #   params <- switch(input$cont_fam_user,
+        #     "Beta" = c(input$beta_shape1_user, input$beta_shape2_user),
+        #     "Cauchy" = c(input$cauchy_loc_user, input$cauchy_scale_user),
+        #     "Chi-square" = input$chisq_df_user,
+        #     "Exponential" = input$exp_rate_user,
+        #     "F" = c(input$f_df1_user, input$f_df2_user),
+        #     "Gamma" = c(input$gamma_shape_user, input$gamma_rate_user),
+        #     "Laplace" = c(input$laplace_loc_user, input$laplace_scale_user),
+        #     "Log-normal" = c(input$lognorm_mean_user, input$lognorm_sd_user),
+        #     "Normal" = c(input$norm_mean_user, input$norm_sd_user),
+        #     "Pareto" = c(input$par_shape_user, input$par_scale_user),
+        #     "Rayleigh" = input$ray_scale_user,
+        #     "t" = input$t_df_user,
+        #     "Triangular" = c(input$tri_min_user, input$tri_max_user, 
+        #       input$tri_mode_user
+        #     ),
+        #     "Uniform (continuous)" = c(input$uni_min_user, input$uni_max_user),
+        #     "Weibull" = c(input$weib_shape_user, input$weib_scale_user)
+        #   )
+        # 
+        # 
+        #   # x min for density curve
+        #   x_min <- switch(input$cont_fam_user,
+        #     "Beta" = 0,
+        #     "Cauchy" = qcauchy(0.01, input$cauchy_loc_user, input$cauchy_scale_user),
+        #     "Chi-square" = 0,
+        #     "Exponential" = 0,
+        #     "F" = 0,
+        #     "Gamma" = 0,
+        #     "Laplace" = qlaplace(0.001, input$laplace_loc_user, 
+        #       input$laplace_scale_user
+        #     ),
+        #     "Log-normal" = qlnorm(0.001, input$lognorm_mean_user, 
+        #       input$lognorm_sd_user
+        #     ),
+        #     "Normal" = qnorm(0.0001, input$norm_mean_user, input$norm_sd_user),
+        #     "Pareto" = input$par_scale_user,
+        #     "Rayleigh" = 0,
+        #     "t" = qt(0.0001, input$t_df_user),
+        #     "Triangular" = input$tri_min_user,
+        #     "Uniform (continuous)" = input$uni_min_user,
+        #     "Weibull" = 0
+        #   )
+        # 
+        # 
+        #   # x max for density curve
+        #   x_max <- switch(input$cont_fam_user,
+        #     "Beta" = 1,
+        #     "Cauchy" = qcauchy(0.99, input$cauchy_loc_user, input$cauchy_scale_user),
+        #     "Chi-square" = qchisq(0.999, input$chisq_df_user),
+        #     "Exponential" = qexp(0.999, input$exp_rate_user),
+        #     "F" = qf(0.98, input$f_df1_user, input$f_df2_user),
+        #     "Gamma" = qgamma(0.999, input$gamma_shape_user, input$gamma_rate_user),
+        #     "Laplace" = qlaplace(0.999, input$laplace_loc_user, input$laplace_scale_user),
+        #     "Log-normal" = qlnorm(0.999, input$lognorm_mean_user, input$lognorm_sd_user),
+        #     "Normal" = qnorm(0.9999, input$norm_mean_user, input$norm_sd_user),
+        #     "Pareto" = qpareto(0.95, input$par_shape_user, input$par_scale_user),
+        #     "Rayleigh" = qrayleigh(0.999, input$ray_scale_user),
+        #     "t" = qt(0.9999, input$t_df_user),
+        #     "Triangular" = input$tri_max_user,
+        #     "Uniform (continuous)" = input$uni_max_user,
+        #     "Weibull" = qweibull(0.999, input$weib_shape_user, input$weib_scale_user)
+        #   )
+        # 
+        # 
+        #   df_x <- data.frame(x = c(x_min, x_max))
+        # 
+        #   n <- 1e4 + 1
+        # 
+        # 
+        #   plot_density <- stat_function(
+        #     fun = dist_fxn,
+        #     n = n,
+        #     args = if (length(params) == 1) {
+        #       list(params)
+        #     } else if (length(params) == 2) {
+        #       list(params[1], params[2])
+        #     } else if (length(params) == 3) {
+        #       list(params[1], params[2], params[3])
+        #     },
+        #     color = input$curve_color_common,
+        #     linewidth = input$curve_lwd_common
+        #   )
+        #   
+        #   plot_user <- plot_user + plot_density
+          #}
 
           if (input$hist_binwidth_user == "") {
-
+  
             plot_user <- plot_user +
               geom_histogram(
-                aes(y = stat(density)),
+                aes(y = after_stat(density)),
                 bins = 15,
                 boundary = 0,
                 fill = input$fill_color_user,
                 color = "black"
               ) +
               ylab("Frequency")
-
+  
           } else {
-
+  
             plot_user <- plot_user +
               geom_histogram(
-                aes(y = stat(density)),
+                aes(y = after_stat(density)),
                 binwidth = as.numeric(input$hist_binwidth_user),
                 boundary = 0,
                 fill = input$fill_color_user,
@@ -4765,7 +5509,7 @@ shinyServer(function(session, input, output){
 
             plot_user <- plot_user +
               geom_histogram(
-                aes(y = stat(density)),
+                aes(y = after_stat(density)),
                 bins = 15,
                 boundary = 0,
                 fill = input$fill_color_user,
@@ -4777,7 +5521,7 @@ shinyServer(function(session, input, output){
 
             plot_user <- plot_user +
               geom_histogram(
-                aes(y = stat(density)),
+                aes(y = after_stat(density)),
                 bins = as.numeric(input$hist_n_bins_user),
                 boundary = 0,
                 fill = input$fill_color_user,
@@ -4787,9 +5531,8 @@ shinyServer(function(session, input, output){
           }
         }
       }
-
-
-
+      
+      
       x_min <- qnorm(0.001, mean(bag$user_data_df[, input$select_var]),
         sd = sd(bag$user_data_df[, input$select_var])
       )
@@ -4918,16 +5661,90 @@ shinyServer(function(session, input, output){
 
       if (input$add_density_user) {
 
+        # density function
+        dist_fxn <- switch(input$cont_fam_user,
+          "Exponential" = dexp,
+          "Gamma" = dgamma,
+          "Log-normal" = dlnorm,
+          "Normal" = dnorm,
+          "Weibull" = dweibull,
+        )
+
+        
+        bag$params_user <- switch(input$cont_fam_user,
+          "Exponential" = optim(
+            mean(bag$user_data_df[, input$select_var]),
+            function(th) {
+              -sum(dexp(bag$user_data_df[, input$select_var],
+                th, log = TRUE
+              ))
+            },
+            method = "L-BFGS-B", lower = 0.01, upper = Inf
+          )$par,
+          
+          "Gamma" = optim(
+            c(10, 10),
+            function(th) {
+              -sum(dgamma(bag$user_data_df[, input$select_var],
+                th[1], th[2], log = TRUE
+              ))
+            },
+            method = "L-BFGS-B", lower = c(0.01, 0.01), upper = c(Inf, Inf)
+          )$par,
+          
+          "Log-normal" = optim(
+            c(10, 10),
+            function(th) {
+              -sum(dlnorm(bag$user_data_df[, input$select_var],
+                th[1], th[2], log = TRUE
+              ))
+            },
+            method = "L-BFGS-B", lower = c(-Inf, 0.01), upper = c(Inf, Inf)
+          )$par,
+          
+          "Normal" = optim(
+            c(
+              mean(bag$user_data_df[, input$select_var]), 
+              sd(bag$user_data_df[, input$select_var])
+            ),
+            function(th) {
+              -sum(dnorm(bag$user_data_df[, input$select_var],
+                th[1], th[2], log = TRUE
+              ))
+            },
+            method = "L-BFGS-B", lower = c(-Inf, 0.01), upper = c(Inf, Inf)
+          )$par,
+          
+          "Weibull" = optim(
+            c(10, 10),
+            function(th) {
+              -sum(dweibull(bag$user_data_df[, input$select_var],
+                th[1], th[2], log = TRUE
+              ))
+            },
+            method = "L-BFGS-B", lower = c(0.01, 0.01), upper = c(Inf, Inf)
+          )$par
+        )
+        
+        
         plot_user <- plot_user +
           stat_function(
-            fun = dnorm,
+            fun = dist_fxn,
             n = n,
-            args = list(
-              mean = mean(bag$user_data_df[, input$select_var]),
-              sd = sd(bag$user_data_df[, input$select_var])
-            ),
+            args = 
+              if (input$cont_fam_user == "Exponential") {
+                list(bag$params_user)
+              } else if (input$cont_fam_user == "Gamma") {
+                list(bag$params_user[1], bag$params_user[2])
+              } else if (input$cont_fam_user == "Log-normal") {
+                list(bag$params_user[1], bag$params_user[2])
+              } else if (input$cont_fam_user == "Normal") {
+                list(bag$params_user[1], bag$params_user[2])
+              } else if (input$cont_fam_user == "Weibull") {
+                list(bag$params_user[1], bag$params_user[2])
+              },
             xlim = c(x_min, x_max),
-            lwd = input$curve_lwd_user,
+            linewidth = input$curve_lwd_user,
             col = input$curve_color_user
           ) +
           ylab("Density")
@@ -4953,7 +5770,7 @@ shinyServer(function(session, input, output){
                   )
                 ),
                 color = input$curve_color_user,
-                lwd = input$curve_lwd_user
+                linewidth = input$curve_lwd_user
               )
           }
 
@@ -4974,7 +5791,7 @@ shinyServer(function(session, input, output){
                   )
                 ),
                 color = input$curve_color_user,
-                lwd = input$curve_lwd_user
+                linewidth = input$curve_lwd_user
               )
           }
 
@@ -5001,7 +5818,7 @@ shinyServer(function(session, input, output){
                   )
                 ),
                 color = input$curve_color_user,
-                lwd = input$curve_lwd_user
+                linewidth = input$curve_lwd_user
               ) +
               geom_segment(
                 aes(
@@ -5015,7 +5832,7 @@ shinyServer(function(session, input, output){
                   )
                 ),
                 color = input$curve_color_user,
-                lwd = input$curve_lwd_user
+                linewidth = input$curve_lwd_user
               )
           }
 
@@ -5042,7 +5859,7 @@ shinyServer(function(session, input, output){
                   )
                 ),
                 color = input$curve_color_user,
-                lwd = input$curve_lwd_user
+                linewidth = input$curve_lwd_user
               ) +
               geom_segment(
                 aes(
@@ -5056,7 +5873,7 @@ shinyServer(function(session, input, output){
                   )
                 ),
                 color = input$curve_color_user,
-                lwd = input$curve_lwd_user
+                linewidth = input$curve_lwd_user
               )
           }
         }
@@ -5281,6 +6098,46 @@ shinyServer(function(session, input, output){
       (bag$plot_user <- plot)
 
     }, width = plot_width_user(), height = 400)
+    
+    
+    output$exp_rate_user <- renderText({
+      paste0("Rate = ", round(bag$params_user, 2))
+    })
+    
+    output$gamma_shape_user <- renderText({
+      paste0("Shape = ", round(bag$params_user[1], 2))
+    })
+    
+    output$gamma_rate_user <- renderText({
+      paste0("Rate = ", round(bag$params_user[2], 2))
+    })
+    
+    
+    output$lognorm_mean_user <- renderText({
+      paste0("Mean = ", round(exp(bag$params_user[1]), 2))
+    })
+
+    output$lognorm_sd_user <- renderText({
+      paste0("SD = ", round(exp(bag$params_user[2]), 2))
+    })
+    
+    
+    output$norm_mean_user <- renderText({
+      paste0("Mean = ", round(bag$params_user[1], 2))
+    })
+
+    output$norm_sd_user <- renderText({
+      paste0("SD = ", round(bag$params_user[2], 2))
+    })
+    
+    
+    output$weib_shape_user <- renderText({
+      paste0("Shape = ", round(bag$params_user[1], 2))
+    })
+    
+    output$weib_scale_user <- renderText({
+      paste0("Scale = ", round(bag$params_user[2], 2))
+    })
   })
 
 
